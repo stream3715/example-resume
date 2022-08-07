@@ -35,8 +35,8 @@ app.get("/", async (req, res) => {
     h: 50,
     w: 240,
     size: mmToPoints(10),
-    horizontalAlign: "right",
-    verticalAlign: "bottom",
+    horizontalAlign: "center",
+    verticalAlign: "middle",
   });
 
   const pdfBytes = await doc.save();
