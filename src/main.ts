@@ -7,11 +7,14 @@ import { mmToPoints, PDFTextRenderer } from "./utils";
 
 const app = express();
 
+const STATIC_DIR = path.join(__dirname, "../frontend");
 const TEMPLATE_DIR = path.resolve(__dirname, "../template");
 const PDF_PATH = path.resolve(TEMPLATE_DIR, "resume.pdf");
 const FONT_PATH = path.resolve(TEMPLATE_DIR, "ipaexm.ttf");
 
-app.get("/", async (req, res) => {
+app.use(express.static(STATIC_DIR));
+
+app.get("/pdf", async (req, res) => {
   const name = req.query.name;
   if (typeof name !== "string") {
     res.setHeader("Content-Type", "text/plain");

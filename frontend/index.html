@@ -1,0 +1,41 @@
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC"
+      crossorigin="anonymous"
+    />
+    <link rel="stylesheet" href="style.css" />
+    <title>Document</title>
+  </head>
+  <body>
+    <script src="https://mozilla.github.io/pdf.js/build/pdf.js"></script>
+    <input id="name-input" type="text" placeholder="name" value="織田信長" />
+    <div>
+      <a
+        id="download-link"
+        class="btn btn-primary btn-lg"
+        href="http://localhost:3000/pdf?name=John Doe"
+        download="johndoe.pdf"
+      >
+        Download PDF
+      </a>
+    </div>
+    <script>
+      const input = document.getElementById("name-input");
+      const link = document.getElementById("download-link");
+
+      const updateLink = () => {
+        link.href = `http://localhost:3000/pdf?name=${input.value}`;
+        link.download = `${input.value}.pdf`;
+      };
+
+      updateLink();
+      input.addEventListener("input", updateLink);
+    </script>
+  </body>
+</html>
