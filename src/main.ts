@@ -1,3 +1,4 @@
+import { LocaleConfig } from "./locale";
 import express from "express";
 import fs from "fs/promises";
 import path from "path";
@@ -40,6 +41,7 @@ app.get("/pdf", async (req, res) => {
     size: mmToPoints(10),
     horizontalAlign: "center",
     verticalAlign: "middle",
+    locale: LocaleConfig.ja_JP,
   });
 
   const pdfBytes = await doc.save();

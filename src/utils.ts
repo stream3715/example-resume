@@ -1,4 +1,5 @@
 import { PDFFont, PDFPage } from "pdf-lib";
+import { LocaleConfig, LocaleDetail } from "./locale";
 import { Coordinate } from "./types";
 
 export const mmToPoints = (mm: number): number => {
@@ -34,30 +35,48 @@ export type RenderTextOptions = Coordinate & {
    * @default 0
    */
   horizontalOffset?: number;
+  /**
+   * @description locale settings
+   * @default C
+   */
+  locale?: LocaleDetail;
 };
 
-export const breakTextIntoLines = (
-  text: string,
-  options: { maxWidth: number; font: PDFFont; fontSize: number }
+const breakSentenceIntoMultipleLines = (
+  sentence: string,
+  options: {
+    maxWidth: number;
+    font: PDFFont;
+    fontSize: number;
+    locale: LocaleDetail;
+  }
 ) => {
-  // const splitter = /(\w+|\s|.)/;
-  // const elements = text.split(splitter);
-  const elements = text.split("");
+  const elements = sentence.split(options.locale.splitChar);
   const lines: string[] = [];
   let line = "";
-  for (let i = 0; i < elements.length; i++) {
-    const e = elements.at(i);
-    if (e === "\n") {
-      lines.push(line + "\n");
-      line = "";
-      continue;
-    }
 
+  for (let [i, e] of elements.entries()) {
+    const nextLineState = `${line}${options.locale.splitChar}${e}`;
     if (
-      options.font.widthOfTextAtSize(line + e, options.fontSize) <=
+      options.font.widthOfTextAtSize(nextLineState, options.fontSize) <=
       options.maxWidth
     ) {
-      line += e;
+      if (
+        options.locale.splitChar === "" &&
+        options.locale.punctuation.includes(elements[i + 1]) &&
+        options.font.widthOfTextAtSize(
+          `${nextLineState}${elements[i + 1]}`,
+          options.fontSize
+        ) > options.maxWidth
+      ) {
+        lines.push(line);
+        line = e ?? "";
+      } else {
+        if (line !== "" && options.locale.splitChar !== "") {
+          line += options.locale.splitChar;
+        }
+        line += e;
+      }
     } else {
       lines.push(line);
       line = e ?? "";
@@ -67,6 +86,23 @@ export const breakTextIntoLines = (
     lines.push(line);
   }
   return lines;
+};
+
+export const breakTextIntoLines = (
+  text: string,
+  options: {
+    maxWidth: number;
+    font: PDFFont;
+    fontSize: number;
+    locale: LocaleDetail;
+  }
+) => {
+  // まず入力を行ごとに分割
+  const rawLines = text.split(/\n?\r\n/);
+  // 行ごとに改行対応し、結合して返却
+  return rawLines
+    .map((line) => breakSentenceIntoMultipleLines(line, options))
+    .reduce((acc, elm) => acc.concat(elm));
 };
 
 export class PDFTextRenderer {
@@ -80,6 +116,7 @@ export class PDFTextRenderer {
       verticalAlign = "middle",
       horizontalOffset = 0,
       verticalOffset = 0,
+      locale = LocaleConfig.C,
     } = opt;
 
     const { height: pageHeight } = this.page.getSize();
@@ -89,6 +126,7 @@ export class PDFTextRenderer {
       maxWidth: opt.w,
       font: this.font,
       fontSize,
+      locale,
     });
 
     const boxHeight = textHeight + lineHeight * (lines.length - 1);
